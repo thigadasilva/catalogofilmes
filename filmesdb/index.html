@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>
+        <a href="index.html" id="titulo">Catálogo</a>
+    </h1>
+
+    <form>
+        <input name="pesquisa" placeholder="Digite o nome do filme... " autocomplete = "off"/>
+        <button><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+</svg></button>
+    </form>
+
+    <div class="lista">
+       
+    </div>
+
+    <script>
+        const apiKey = "38bb756b";
+        const Year = "2024";
+        const frmPesquisa = document.querySelector("form");
+
+        frmPesquisa.onsubmit = (ev) => {
+            ev.preventDefault();
+            
+            const pesquisa = ev.target.pesquisa.value;
+
+            if (pesquisa == ""){
+                alert("Insira o nome de um filme primeiro!")
+                return;
+            }
+
+            fetch(`http://www.omdbapi.com/?s=${pesquisa}&apikey=${apiKey}`)
+                .then(result => result.json())
+                .then(json => carregaLista(json));
+        }
+
+        const carregaLista = (json) => {
+            const lista = document.querySelector("div.lista")
+            lista.innerHTML = "";
+
+            if (json.Response == 'False'){
+                alert('Nenhum filme encontrado.');
+                return;
+            }
+            
+            json.Search.forEach(element => {
+
+                 let item = document.createElement("div");
+        item.classList.add("item");
+        let img = document.createElement("img");
+        img.src = element.Poster;
+        img.onerror = () => {
+          item.remove(); // Remove o item se a imagem não carregar
+        };
+        let title = document.createElement("h2");
+        title.textContent = element.Title;
+        item.appendChild(img);
+        item.appendChild(title);
+        lista.appendChild(item);
+                
+            });
+        }
+      const carregaListaAleatoria = () => {
+fetch(`http://www.omdbapi.com/?s=movie&y=${Year}&apikey=${apiKey}`)
+    .then(result => result.json())
+    .then(json => {
+      const lista = document.querySelector("div.lista")
+      lista.innerHTML = "";
+      json.Search.forEach(element => {
+        let item = document.createElement("div");
+        item.classList.add("item");
+        item.innerHTML = `<img src="${element.Poster}" /><h2>${element.Title}</h2>`
+        lista.appendChild(item);
+      });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", carregaListaAleatoria);
+
+const inputPesquisa = document.querySelector("input[name='pesquisa']");
+const listaSugestoes = document.createElement("ul");
+listaSugestoes.classList.add("sugestoes");
+inputPesquisa.parentNode.appendChild(listaSugestoes);
+
+inputPesquisa.addEventListener("input", () => {
+  const valor = inputPesquisa.value.trim();
+  if (valor !== "") {
+    fetch(`http://www.omdbapi.com/?s=${valor}&apikey=${apiKey}`)
+      .then(result => result.json())
+      .then(json => {
+        listaSugestoes.innerHTML = "";
+        if (json.Response === "True") {
+          json.Search.forEach(element => {
+            const item = document.createElement("li");
+            item.textContent = element.Title;
+            item.addEventListener("click", () => {
+              inputPesquisa.value = element.Title;
+              listaSugestoes.innerHTML = "";
+              frmPesquisa.onsubmit(new Event("submit"));
+            });
+            listaSugestoes.appendChild(item);
+          });
+        }
+      });
+  } else {
+    listaSugestoes.innerHTML = "";
+  }
+});
+
+
+    </script>
+
+</body>
+</html>
